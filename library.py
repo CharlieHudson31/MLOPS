@@ -570,7 +570,8 @@ customer_transformer = Pipeline(
       ("OS", CustomOHETransformer('OS')),
       ("ISP", CustomOHETransformer('ISP')),
       ("Gender", CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
-      ("Experience Level", CustomMappingTransformer('Experience Level', {'low': 0, 'medium': 1, 'high': 2}))
+      ("Experience Level", CustomMappingTransformer('Experience Level', {'low': 0, 'medium': 1, 'high': 2})),
+        ('time spent', CustomTukeyTransformer('Time Spent', 'inner')),
     ], verbose=True)
 titanic_transformer = Pipeline(steps=[
     ('gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
