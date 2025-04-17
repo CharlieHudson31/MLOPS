@@ -563,3 +563,19 @@ class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
       self.fit(X, y)
       result: pd.DataFrame = self.transform(X)
       return result
+
+customer_transformer = Pipeline(
+    #fill in the steps on your own
+    steps=[
+        ("ID", CustomDropColumnsTransformer(['ID'], 'drop')),
+      ("OS", CustomOHETransformer('OS')),
+      ("ISP", CustomOHETransformer('ISP')),
+      ("Gender", CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
+      ("Experience Level", CustomMappingTransformer('Experience Level', {'low': 0, 'medium': 1, 'high': 2}))
+    ], verbose=True)
+titanic_transformer = Pipeline(steps=[
+    ('gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
+    ('class', CustomMappingTransformer('Class', {'Crew': 0, 'C3': 1, 'C2': 2, 'C1': 3})),
+    #add your new ohe step below
+    ('Joined', CustomOHETransformer(target_column='Joined')),
+    ], verbose=True)
