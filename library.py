@@ -565,7 +565,6 @@ class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
       return result
 
 customer_transformer = Pipeline(
-    #fill in the steps on your own
     steps=[
         ("ID", CustomDropColumnsTransformer(['ID'], 'drop')),
       ("OS", CustomOHETransformer('OS')),
@@ -576,6 +575,7 @@ customer_transformer = Pipeline(
 titanic_transformer = Pipeline(steps=[
     ('gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
     ('class', CustomMappingTransformer('Class', {'Crew': 0, 'C3': 1, 'C2': 2, 'C1': 3})),
-    #add your new ohe step below
+
     ('Joined', CustomOHETransformer(target_column='Joined')),
+    ('fare', CustomTukeyTransformer(target_column='Fare', fence='outer')),
     ], verbose=True)
