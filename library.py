@@ -499,3 +499,67 @@ class CustomSigma3Transformer(BaseEstimator, TransformerMixin):
       self.fit(X, y)
       result: pd.DataFrame = self.transform(X)
       return result
+    
+class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
+    """
+    A transformer that applies Tukey's fences (inner or outer) to a specified column in a pandas DataFrame.
+
+    This transformer follows the scikit-learn transformer interface and can be used in a scikit-learn pipeline.
+    It clips values in the target column based on Tukey's inner or outer fences.
+
+    Parameters
+    ----------
+    target_column : Hashable
+        The name of the column to apply Tukey's fences on.
+    fence : Literal['inner', 'outer'], default='outer'
+        Determines whether to use the inner fence (1.5 * IQR) or the outer fence (3.0 * IQR).
+
+    Attributes
+    ----------
+    inner_low : Optional[float]
+        The lower bound for clipping using the inner fence (Q1 - 1.5 * IQR).
+    outer_low : Optional[float]
+        The lower bound for clipping using the outer fence (Q1 - 3.0 * IQR).
+    inner_high : Optional[float]
+        The upper bound for clipping using the inner fence (Q3 + 1.5 * IQR).
+    outer_high : Optional[float]
+        The upper bound for clipping using the outer fence (Q3 + 3.0 * IQR).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> df = pd.DataFrame({'values': [10, 15, 14, 20, 100, 5, 7]})
+    >>> tukey_transformer = CustomTukeyTransformer(target_column='values', fence='inner')
+    >>> transformed_df = tukey_transformer.fit_transform(df)
+    >>> transformed_df
+    """
+    def __init__(self, target_column, fence: Literal['inner', 'outer'] = 'outer' ) -> None:
+      self.target_column = target_column
+      self.fence = fence
+      self.inner_low = None
+      self.outer_low = None
+      self.inner_high = None
+      self.outer_high = None
+    def fit(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> Self:
+      assert isinstance(X, pd.core.frame.DataFrame), f'expected Dataframe but got {type(X)} instead.'
+      assert self.target_column in X.columns.to_list(), f'unknown column {self.target_column}'
+      q1 = X[self.target_column].quantile(0.25)
+      q3 = X[self.target_column].quantile(0.75)
+      iqr = q3-q1
+      self.inner_low = q1-1.5*iqr
+      self.outer_low = q1-3*iqr
+      self.inner_high = q3+1.5*iqr
+      self.outer_high = q3+3*iqr
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+      assert self.inner_low is not None and self.outer_low is not None and self.inner_high is not None and self.outer_high is not None, 'TukeyTransformer.fit has not been called.'
+      X_: pd.DataFrame = X.copy()
+      if self.fence == 'inner':
+        X_[self.target_column] = X_[self.target_column].clip(lower=self.inner_low, upper=self.inner_high)
+        return X_.reset_index(drop=True)
+      else:
+        X_[self.target_column] = X_[self.target_column].clip(lower=self.outer_low, upper=self.outer_high)
+        return X_.reset_index(drop=True)
+    def fit_transform(self, X: pd.DataFrame, y: Optional[Iterable] = None) ->pd.DataFrame:
+      self.fit(X, y)
+      result: pd.DataFrame = self.transform(X)
+      return result
