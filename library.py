@@ -420,3 +420,82 @@ class CustomMappingTransformer(BaseEstimator, TransformerMixin):
       #self.fit(X,y)  #commented out to avoid warning message in fit
       result: pd.DataFrame = self.transform(X)
       return result
+  
+class CustomPearsonTransformer(BaseEstimator, TransformerMixin):
+    """
+    A custom scikit-learn transformer that removes highly correlated features
+    based on Pearson correlation.
+
+    Parameters
+    ----------
+    threshold : float
+        The correlation threshold above which features are considered too highly correlated
+        and will be removed.
+
+    Attributes
+    ----------
+    correlated_columns : Optional[List[Hashable]]
+        A list of column names (which can be strings, integers, or other hashable types)
+        that are identified as highly correlated and will be removed.
+    """
+    def __init__(self, threshold) -> None:
+        self.threshold = threshold
+        self.correlated_columns = None
+        return
+    def fit(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> Self:
+        df_corr = X.corr(method='pearson')
+        masked_df = (df_corr.abs() > self.threshold)
+        upper_mask = np.triu(masked_df, k=1).astype(bool)
+        correlated_columns = [col for idx, col in enumerate(masked_df.columns) if upper_mask[:, idx].any()]
+        self.correlated_columns = correlated_columns
+        return
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        assert self.correlated_columns is not None, "PearsonTransformer.transform called before fit."
+        X_: pd.DataFrame = X.copy()
+        X_  =CustomDropColumnsTransformer(self.correlated_columns, 'drop').fit_transform(X_)
+        return X_
+
+    def fit_transform(self, X: pd.DataFrame, y: Optional[Iterable] = None) ->pd.DataFrame:
+        self.fit(X, y)
+        result: pd.DataFrame = self.transform(X)
+        return result
+class CustomSigma3Transformer(BaseEstimator, TransformerMixin):
+    """
+    A transformer that applies 3-sigma clipping to a specified column in a pandas DataFrame.
+
+    This transformer follows the scikit-learn transformer interface and can be used in
+    a scikit-learn pipeline. It clips values in the target column to be within three standard
+    deviations from the mean.
+
+    Parameters
+    ----------
+    target_column : Hashable
+        The name of the column to apply 3-sigma clipping on.
+
+    Attributes
+    ----------
+    high_wall : Optional[float]
+        The upper bound for clipping, computed as mean + 3 * standard deviation.
+    low_wall : Optional[float]
+        The lower bound for clipping, computed as mean - 3 * standard deviation.
+    """
+    def __init__(self, target_column) -> None:
+      self.target_column = target_column
+      self.high_wall = None
+      self.low_wall = None
+    def fit(self, X: pd.DataFrame, y: Optional[Iterable] = None) -> Self:
+      assert isinstance(X, pd.core.frame.DataFrame), f'expected Dataframe but got {type(X)} instead.'
+      assert self.target_column in X.columns.to_list(), f'unknown column {self.target_column}'
+      mean = X[self.target_column].mean()
+      std = X[self.target_column].std()
+      self.low_wall = mean - 3 * std
+      self.high_wall = mean + 3 * std
+    def transform(self, X: pd.DataFrame) -> pd.DataFrame:
+      assert self.high_wall is not None and self.low_wall is not None, 'Sigma3Transformer.fit has not been called.'
+      X_: pd.DataFrame = X.copy()
+      X_[self.target_column] = X_[self.target_column].clip(lower=self.low_wall, upper=self.high_wall)
+      return X_.reset_index(drop=True)
+    def fit_transform(self, X: pd.DataFrame, y: Optional[Iterable] = None) ->pd.DataFrame:
+      self.fit(X, y)
+      result: pd.DataFrame = self.transform(X)
+      return result
