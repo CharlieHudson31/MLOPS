@@ -7,6 +7,7 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
 import sklearn
 from sklearn import set_config
+import warnings
 set_config(transform_output="pandas")  #forces built-in transformers to output df
 
 class CustomOHETransformer(BaseEstimator, TransformerMixin):
