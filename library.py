@@ -565,6 +565,49 @@ class CustomTukeyTransformer(BaseEstimator, TransformerMixin):
       result: pd.DataFrame = self.transform(X)
       return result
 
+class CustomRobustTransformer(BaseEstimator, TransformerMixin):
+  """Applies robust scaling to a specified column in a pandas DataFrame.
+    This transformer calculates the interquartile range (IQR) and median
+    during the `fit` method and then uses these values to scale the
+    target column in the `transform` method.
+
+    Parameters
+    ----------
+    column : str
+        The name of the column to be scaled.
+
+    Attributes
+    ----------
+    target_column : str
+        The name of the column to be scaled.
+    iqr : float
+        The interquartile range of the target column.
+    med : float
+        The median of the target column.
+  """
+  def __init__(self, column) -> None:
+    self.target_column = column
+    self.iqr = None
+    self.med = None
+
+  def fit(self, X, y=None):
+    assert self.target_column in X.columns, f"CustomRobustTransformer.fit unrecognizable column {self.target_column}."
+    self.iqr = X[self.target_column].quantile(0.75) - X[self.target_column].quantile(0.25)
+    self.med = X[self.target_column].median()
+    return self
+  def transform(self, X, y=None):
+    assert self.iqr is not None, "This CustomRobustTransformer instance is not fitted yet. Call \"fit\" with appropriate arguments before using this estimator."
+    X_ = X.copy()
+    if self.iqr != 0 and self.med != 0:
+      X_[self.target_column] = (X_[self.target_column] - self.med) / self.iqr
+    else:
+      print(f"Warning, applying CustomRobustTransformer.transform on a binary column {self.target_column} will not have any effect")
+    return X_
+  def fit_transform(self, X: pd.DataFrame, y: Optional[Iterable] = None) ->pd.DataFrame:
+      self.fit(X, y)
+      result: pd.DataFrame = self.transform(X)
+      return result
+  
 customer_transformer = Pipeline(
     steps=[
         ("ID", CustomDropColumnsTransformer(['ID'], 'drop')),
@@ -581,3 +624,4 @@ titanic_transformer = Pipeline(steps=[
     ('Joined', CustomOHETransformer(target_column='Joined')),
     ('fare', CustomTukeyTransformer(target_column='Fare', fence='outer')),
     ], verbose=True)
+
