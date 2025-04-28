@@ -624,7 +624,7 @@ titanic_transformer = Pipeline(steps=[
     ('Joined', CustomOHETransformer(target_column='Joined')),
     ('Fare', CustomTukeyTransformer(target_column='Fare', fence='outer')),
     ('Age', CustomTukeyTransformer(target_column='Age', fence='outer')),
-    ('Age',CustomRobustTransformer(target_column='Age') ),
-    ('Fare', CustomRobustTransformer('Fare')),
+    ('Age_Robust',CustomRobustTransformer(target_column='Age') ),
+    ('Fare_robust', CustomRobustTransformer(target_column='Fare')),
     ], verbose=True)
 
