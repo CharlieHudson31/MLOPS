@@ -618,10 +618,11 @@ customer_transformer = Pipeline(
         ('time spent', CustomTukeyTransformer('Time Spent', 'inner')),
     ], verbose=True)
 titanic_transformer = Pipeline(steps=[
-    ('gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
-    ('class', CustomMappingTransformer('Class', {'Crew': 0, 'C3': 1, 'C2': 2, 'C1': 3})),
+    ('Gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
+    ('Class', CustomMappingTransformer('Class', {'Crew': 0, 'C3': 1, 'C2': 2, 'C1': 3})),
 
     ('Joined', CustomOHETransformer(target_column='Joined')),
-    ('fare', CustomTukeyTransformer(target_column='Fare', fence='outer')),
+    ('Fare', CustomTukeyTransformer(target_column='Fare', fence='outer')),
+    ('Age', CustomTukeyTransformer(target_column='Age', fence='outer')),
     ], verbose=True)
 
