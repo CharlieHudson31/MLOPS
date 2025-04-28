@@ -585,8 +585,8 @@ class CustomRobustTransformer(BaseEstimator, TransformerMixin):
     med : float
         The median of the target column.
   """
-  def __init__(self, column) -> None:
-    self.target_column = column
+  def __init__(self, target_column) -> None:
+    self.target_column = target_column
     self.iqr = None
     self.med = None
 
