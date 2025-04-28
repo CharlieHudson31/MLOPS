@@ -9,6 +9,20 @@ import sklearn
 from sklearn import set_config
 import warnings
 set_config(transform_output="pandas")  #forces built-in transformers to output df
+from typing import Annotated
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import IterativeImputer
+
+#3 different choices for "some_predictor"
+from sklearn.tree import DecisionTreeRegressor    #alternative 1
+from sklearn.ensemble import ExtraTreesRegressor  #alternative 2
+from sklearn.linear_model import BayesianRidge    #alternative 3
+from sklearn.impute import KNNImputer
+
+PositiveInta = Annotated[int, lambda x: x > 0]
+from sklearn.exceptions import NotFittedError
+from warnings import warn
 
 class CustomOHETransformer(BaseEstimator, TransformerMixin):
   """
@@ -608,6 +622,94 @@ class CustomRobustTransformer(BaseEstimator, TransformerMixin):
       result: pd.DataFrame = self.transform(X)
       return result
   
+
+class CustomKNNTransformer(BaseEstimator, TransformerMixin):
+  """Imputes missing values using KNN.
+
+  This transformer wraps the KNNImputer from scikit-learn and hard-codes
+  add_indicator to be False. It also ensures that the input and output
+  are pandas DataFrames.
+
+  Parameters
+  ----------
+  n_neighbors : int, default=5
+      Number of neighboring samples to use for imputation.
+  weights : {'uniform', 'distance'}, default='uniform'
+      Weight function used in prediction. Possible values:
+      "uniform" : uniform weights. All points in each neighborhood
+      are weighted equally.
+      "distance" : weight points by the inverse of their distance.
+      in this case, closer neighbors of a query point will have a
+      greater influence than neighbors which are further away.
+  """
+  #your code below
+  def __init__(self, n_neighbors: PositiveInta = 5, weights: Literal['uniform', 'distance']='uniform') -> None:
+    self.n_neighbors = n_neighbors
+    self.weights = weights
+    self.imputer = KNNImputer(n_neighbors=self.n_neighbors, weights=self.weights, add_indicator=False)
+    self.is_fit = False
+  def fit(self, X, y=None):
+    """
+    Fit the imputer on the input data.
+
+    Parameters
+    ----------
+    X : pandas DataFrame
+        Input data to fit the imputer on.
+
+    y : pandas Series, optional
+        Ignored. This parameter exists only for compatibility 
+        with the scikit-learn API.
+
+    Returns
+    -------
+    self : CustomKNNTransformer
+        Returns the fitted transformer instance.
+    """
+    num_samples = len(X)
+    if self.n_neighbors > num_samples:
+      warnings.warn("%s.fit Number of nearest neighbors specified is greater than the number of samples (rows) %f > %f" % (self.__class__.__name__, self.n_neighbors, num_samples))
+    self.imputer.fit(X, y)
+    self.is_fit = True
+    return self
+  def transform(self, X):
+    """
+    Transform the input data by imputing missing values.
+
+    Parameters
+    ----------
+    X : pandas DataFrame
+        Input data to transform.
+
+    Returns
+    -------
+    X_imputed : pandas DataFrame
+        Transformed data with missing values imputed.
+    """
+    if not self.is_fit:
+      raise NotFittedError("This CustomKNNTransformer instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.")
+    return pd.DataFrame(self.imputer.transform(X), columns=X.columns)
+  def fit_transform(self, X, y=None):
+    """
+      Fit the imputer and transform the input data.
+
+      Parameters
+      ----------
+      X : pandas DataFrame
+          Input data with missing values.
+      y : pandas Series, optional
+          Ignored. This parameter exists only for compatibility with 
+          the scikit-learn API.
+
+      Returns
+      -------
+      X_imputed : pandas DataFrame
+          Input data with missing values imputed.
+    """
+
+    return self.fit(X, y).transform(X)
+
+
 customer_transformer = Pipeline(
     steps=[
         ("ID", CustomDropColumnsTransformer(['ID'], 'drop')),
@@ -616,6 +718,10 @@ customer_transformer = Pipeline(
       ("Gender", CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
       ("Experience Level", CustomMappingTransformer('Experience Level', {'low': 0, 'medium': 1, 'high': 2})),
         ('time spent', CustomTukeyTransformer('Time Spent', 'inner')),
+        ('age', CustomTukeyTransformer('Age', 'outter')),
+        ('Time Spent Scaler', CustomRobustTransformer('Time Spent')),
+        ("Age Scaler", CustomRobustTransformer('Age')),
+        ('imputer', CustomKNNTransformer())
     ], verbose=True)
 titanic_transformer = Pipeline(steps=[
     ('Gender', CustomMappingTransformer('Gender', {'Male': 0, 'Female': 1})),
@@ -627,4 +733,5 @@ titanic_transformer = Pipeline(steps=[
     ('Age_Robust',CustomRobustTransformer(target_column='Age') ),
     ('Fare_robust', CustomRobustTransformer(target_column='Fare')),
     ], verbose=True)
+
 
