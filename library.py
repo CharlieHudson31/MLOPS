@@ -733,7 +733,7 @@ class CustomTargetTransformer(BaseEstimator, TransformerMixin):
         self.global_mean_ = None
         self.encoding_dict_ = None
 
-    def fit(self, X, y):
+    def fit(self, X, y=None):
         """
         Fit the target encoder using training data.
 
@@ -746,8 +746,6 @@ class CustomTargetTransformer(BaseEstimator, TransformerMixin):
         """
         assert isinstance(X, pd.core.frame.DataFrame), f'{self.__class__.__name__}.fit expected Dataframe but got {type(X)} instead.'
         assert self.col in X, f'{self.__class__.__name__}.fit column not in X: {self.col}. Actual columns: {X.columns}'
-        assert isinstance(y, Iterable), f'{self.__class__.__name__}.fit expected Iterable but got {type(y)} instead.'
-        assert len(X) == len(y), f'{self.__class__.__name__}.fit X and y must be same length but got {len(X)} and {len(y)} instead.'
 
         #Create new df with just col and target - enables use of pandas methods below
         X_ = X[[self.col]]
