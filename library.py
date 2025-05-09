@@ -925,3 +925,14 @@ customer_transformer = Pipeline(steps=[
     ('scale_time spent', CustomRobustTransformer(target_column='Time Spent')), #from 5
     ('impute', CustomKNNTransformer(n_neighbors=5)),
     ], verbose=True)
+
+customer_transformer_2 = Pipeline(steps=[
+   ("tukey age", CustomTukeyTransformer(target_column='Age', fence='inner')),
+   ("tukey time", CustomTukeyTransformer(target_column='Time Spent', fence='inner')),
+    ("robust age", CustomRobustTransformer(target_column='Age')),
+    ("robust time", CustomRobustTransformer(target_column="Time Spent")),
+])
+
+"""
+X_train, X_test, y_train, y_test = train_test_split(customers_features, labels, test_size=0.2, random_state=113, stratify=labels)
+"""
