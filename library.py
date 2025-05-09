@@ -695,7 +695,8 @@ class CustomKNNTransformer(BaseEstimator, TransformerMixin):
     """
     if not self.is_fit:
       raise NotFittedError("This CustomKNNTransformer instance is not fitted yet. Call 'fit' with appropriate arguments before using this estimator.")
-    return pd.DataFrame(self.imputer.transform(X), columns=X.columns)
+    _X = X.copy()
+    return pd.DataFrame(self.imputer.transform(_X), columns=_X.columns)
   def fit_transform(self, X, y=None):
     """
       Fit the imputer and transform the input data.
@@ -713,8 +714,9 @@ class CustomKNNTransformer(BaseEstimator, TransformerMixin):
       X_imputed : pandas DataFrame
           Input data with missing values imputed.
     """
-
-    return self.fit(X, y).transform(X)
+    self.fit(X, y)
+    result: pd.DataFrame = self.transform(X)
+    return result
 
 class CustomTargetTransformer(BaseEstimator, TransformerMixin):
     """
