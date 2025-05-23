@@ -32,6 +32,14 @@ from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_sc
 titanic_variance_based_split = 107
 customer_variance_based_split = 113
 
+from sklearn.experimental import enable_halving_search_cv
+from sklearn.model_selection import HalvingGridSearchCV
+from sklearn.model_selection import ParameterGrid
+"""
+^Usage:
+param_grid = ParameterGrid(knn_grid)  #a list of dictionaries, one for each combo
+len(param_grid)  #160
+"""
 #Can use TargetTransformer instead of OHE.
 class CustomOHETransformer(BaseEstimator, TransformerMixin):
   """
@@ -989,6 +997,33 @@ def threshold_results(thresh_list, actuals, predicted):
 
   fancy_df = result_df.style.highlight_max(color = 'pink', axis = 0).format(precision=2).set_properties(**properties).set_table_styles([headers])
   return (result_df, fancy_df)
+
+def halving_search(model, grid, x_train, y_train, factor=3, min_resources="exhaust", scoring='roc_auc'):
+  #your code below
+  halving_cv = HalvingGridSearchCV(
+      model, grid,  #our model and the parameter combos we want to try
+      scoring=scoring,  #from chapter 10
+      n_jobs=-1,  #use all available cpus,
+      min_resources=min_resources,  #"exhaust" sets this to 20, which is non-optimal. Possible bug in algorithm. See https://github.com/scikit-learn/scikit-learn/issues/27422.
+      factor=factor,  #double samples
+      cv=5, random_state=1234,
+      refit=True,  #remembers the best combo and gives us back that model already trained and ready for testing
+  )
+
+  grid_result = halving_cv.fit(x_train, y_train)
+  return grid_result
+
+def sort_grid(grid):
+  sorted_grid = grid.copy()
+
+  #sort values - note that this will expand range for you
+  for k,v in sorted_grid.items():
+    sorted_grid[k] = sorted(sorted_grid[k], key=lambda x: (x is None, x))  #handles cases where None is an alternative value
+
+  #sort keys
+  sorted_grid = dict(sorted(sorted_grid.items()))
+
+  return sorted_grid
 """"
 model = LogisticRegressionCV(cv=5, random_state=1, max_iter=5000)
 model.fit(X_train, y_train)  #train the model
