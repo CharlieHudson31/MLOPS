@@ -35,6 +35,7 @@ loan_applcation_rs = 176
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import HalvingGridSearchCV
 from sklearn.model_selection import ParameterGrid
+import joblib
 """
 ^Usage:
 param_grid = ParameterGrid(knn_grid)  #a list of dictionaries, one for each combo
@@ -1072,3 +1073,7 @@ loans_transformer = Pipeline(steps=[
     ('scale_credit_score', CustomRobustTransformer(target_column='credit_score')),
     ('impute', CustomKNNTransformer(n_neighbors=5)),
     ], verbose=True)
+
+"""
+downsample_df = original_df.groupby(target, group_keys=False).apply(lambda x: x.sample(int(np.rint(N*len(x)/len(original_df))))).sample(frac=1).reset_index(drop=True)
+"""
