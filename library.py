@@ -1034,9 +1034,9 @@ result_df, fancy_df = threshold_results(np.round(np.arange(0.0,1.01,.05), 2), y_
 
 loans_transformer = Pipeline(steps=[
     ('map_person_gender', CustomMappingTransformer('person_gender', {'male': 0, 'female': 1})),
-    ('map_person_education', CustomMappingTransformer('person_education', {'Associate': 0, 'Master': 1, 'Bachelor': 2, 'High School': 3, 'Doctorate': 4})),
-    ('map_person_home_ownership', CustomMappingTransformer('person_home_ownership', {'MORTGAGE': 0, 'RENT': 1, 'OWN': 2, 'OTHER': 3})),
-    ('map_loan_intent', CustomMappingTransformer('loan_intent', {'VENTURE': 0, 'MEDICAL': 1, 'PERSONAL': 2, 'EDUCATION': 3, 'HOMEIMPROVEMENT': 4, 'DEBTCONSOLIDATION': 5})),
+    ('map_person_education', CustomMappingTransformer('person_education', {'High School': 0, 'Associate': 1, 'Bachelor': 2, 'Master': 3, 'Doctorate': 4})),
+    ('map_person_home_ownership', CustomTargetTransformer(col='person_home_ownership')),
+    ('map_loan_intent', CustomTargetTransformer(col='loan_intent')),
 
     ('map_previous_loan_defaults_on_file', CustomMappingTransformer('previous_loan_defaults_on_file', {'Yes': 1, 'No': 0})),
 
