@@ -1063,7 +1063,7 @@ loans_transformer = Pipeline(steps=[
 
     ('scale_loan_int_rate', CustomRobustTransformer(target_column='loan_int_rate')),
 
-    ('scale_loan_amnt', CustomRobustTransformer(target_column='loan_amount')),
+    ('scale_loan_amnt', CustomRobustTransformer(target_column='loan_amnt')),
 
     ('scale_loan_percent_incoeme', CustomRobustTransformer(target_column='loan_percent_income')),
 

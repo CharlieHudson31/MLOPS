@@ -1,7 +1,9 @@
 # Loan Application Data Pipeline Documentation
 
 ## Pipeline Overview
-This pipeline preprocesses the loan application dataset to prepare it for machine learning modeling. It handles categorical encoding, outlier detection and treatment, feature scaling.
+This pipeline preprocesses the loan application dataset to prepare it for machine learning modeling. It handles categorical encoding, outlier detection and treatment, and feature scaling.
+
+<img src='https://github.com/CharlieHudson31/MLOPS/blob/main/loan_application_data_transformer_pipeline.png?raw=true' width='70%' alt='Pipeline Diagram'>
 
 ## Step-by-Step Design Choices
 
@@ -21,7 +23,7 @@ This pipeline preprocesses the loan application dataset to prepare it for machin
 - **Rationale:** 
   - Replaces the categorical 'person_home_ownership' feature with its relationship to the target variable
 
-  ### 4. Target Encoding for Loan Intent Column (`loan_intent`)
+### 4. Target Encoding for Loan Intent Column (`loan_intent`)
   - **Transformer:** `CustomTargetTransformer(col='loan_intent')`
 - **Design Choice:** Target encoding.
 - **Rationale:** 
