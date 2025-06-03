@@ -1031,3 +1031,44 @@ yraw = model.predict_proba(X_test)[:,1]  #test set -  getting probabilities of 1
 
 result_df, fancy_df = threshold_results(np.round(np.arange(0.0,1.01,.05), 2), y_test, yraw)
 """
+
+loans_transformer = Pipeline(steps=[
+    ('map_person_gender', CustomMappingTransformer('person_gender', {'male': 0, 'female': 1})),
+    ('map_person_education', CustomMappingTransformer('person_education', {'Associate': 0, 'Master': 1, 'Bachelor': 2, 'High School': 3, 'Doctorate': 4})),
+    ('map_person_home_ownership', CustomMappingTransformer('person_home_ownership', {'MORTGAGE': 0, 'RENT': 1, 'OWN': 2, 'OTHER': 3})),
+    ('map_loan_intent', CustomMappingTransformer('loan_intent', {'VENTURE': 0, 'MEDICAL': 1, 'PERSONAL': 2, 'EDUCATION': 3, 'HOMEIMPROVEMENT': 4, 'DEBTCONSOLIDATION': 5})),
+
+    ('map_previous_loan_defaults_on_file', CustomMappingTransformer('previous_loan_defaults_on_file', {'Yes': 1, 'No': 0})),
+
+    ('tukey_person_age', CustomTukeyTransformer(target_column='person_age', fence='outer')),
+
+    ('tukey_person_income', CustomTukeyTransformer(target_column='person_income', fence='outer')),
+
+    ('tukey_person_emp_exp', CustomTukeyTransformer(target_column='person_emp_exp', fence='outer')),
+
+    ('tukey_loan_int_rate', CustomTukeyTransformer(target_column='loan_int_rate', fence='outer')),
+
+    ('tukey_loan_amnt', CustomTukeyTransformer(target_column='loan_amnt', fence='outer')),
+
+    ('tukey_loan_percent_incoeme', CustomTukeyTransformer(target_column='loan_percent_income', fence='outer')),
+    
+    ('tukey_cb_person_cred_hist_length', CustomTukeyTransformer(target_column='cb_person_cred_hist_length', fence='outer')),
+
+    ('tukey_credit_score', CustomTukeyTransformer(target_column='credit_score', fence='outer')),
+
+    ('scale_person_age', CustomRobustTransformer(target_column='person_age')),
+    ('scale_person_income', CustomRobustTransformer(target_column='person_income')),
+
+    ('scale_person_emp_exp', CustomRobustTransformer(target_column='person_emp_exp')),
+
+    ('scale_loan_int_rate', CustomRobustTransformer(target_column='loan_int_rate')),
+
+    ('scale_loan_amnt', CustomRobustTransformer(target_column='loan_amount')),
+
+    ('scale_loan_percent_incoeme', CustomRobustTransformer(target_column='loan_percent_income')),
+
+    ('scale_cb_person_cred_hist_length', CustomRobustTransformer(target_column='cb_person_cred_hist_length')),
+
+    ('scale_credit_score', CustomRobustTransformer(target_column='credit_score')),
+    ('impute', CustomKNNTransformer(n_neighbors=5)),
+    ], verbose=True)
