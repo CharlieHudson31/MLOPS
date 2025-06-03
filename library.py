@@ -31,7 +31,7 @@ from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score, roc_auc_score
 titanic_variance_based_split = 107
 customer_variance_based_split = 113
-
+loan_applcation_rs = 176
 from sklearn.experimental import enable_halving_search_cv
 from sklearn.model_selection import HalvingGridSearchCV
 from sklearn.model_selection import ParameterGrid
